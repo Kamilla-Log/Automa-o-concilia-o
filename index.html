@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Automação de Conciliação Bancária — Logcomex</title>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple-primary: #6613D0;
+    --purple-dark: #2D085D;
+    --purple-light: #E2D0FA;
+    --purple-mid: #8E44ED;
+    --bg: #F5F6FC;
+    --fg: #0B0D19;
+    --card: #FFFFFF;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+    --orange: #FE8F1C;
+    --green: #1FAC66;
+    --teal: #1DA6AE;
+    --danger: #C70404;
+    --warning: #C99D02;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple-primary) 60%, var(--purple-mid) 100%);
+    padding: 48px 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 30%;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .header-left h1 {
+    font-family: 'Funnel Display', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .header-left p {
+    color: rgba(255,255,255,0.75);
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
+
+  .header-badge {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 12px 20px;
+    color: #fff;
+    font-size: 0.8rem;
+    text-align: center;
+    backdrop-filter: blur(8px);
+  }
+
+  .header-badge strong {
+    display: block;
+    font-size: 1.1rem;
+    font-family: 'Funnel Display', sans-serif;
+    margin-bottom: 2px;
+  }
+
+  /* NAV */
+  .nav {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 64px;
+    display: flex;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .nav a {
+    padding: 16px 24px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .nav a:hover, .nav a.active {
+    color: var(--purple-primary);
+    border-bottom-color: var(--purple-primary);
+  }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
+
+  /* SECTIONS */
+  .section { margin-bottom: 64px; }
+
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--purple-primary);
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-family: 'Funnel Display', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--fg);
+    margin-bottom: 8px;
+  }
+
+  .section-desc {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 32px;
+    max-width: 680px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  .card-title {
+    font-family: 'Funnel Display', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+  /* OVERVIEW CARDS */
+  .overview-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    border-left: 4px solid var(--purple-primary);
+  }
+
+  .overview-card .icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: var(--purple-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: 14px;
+  }
+
+  .overview-card h3 {
+    font-family: 'Funnel Display', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .overview-card p {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* FLOW */
+  .flow-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    overflow-x: auto;
+  }
+
+  .flow-steps {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-width: 800px;
+    position: relative;
+  }
+
+  .flow-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .flow-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -14px;
+    top: 28px;
+    font-size: 1.4rem;
+    color: var(--purple-primary);
+    z-index: 2;
+    font-weight: 700;
+  }
+
+  .flow-node {
+    width: 100%;
+    padding: 16px 12px;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 8px;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .flow-node.trigger {
+    background: linear-gradient(135deg, var(--purple-dark), var(--purple-primary));
+    color: #fff;
+    border-color: var(--purple-primary);
+  }
+
+  .flow-node.process {
+    background: var(--purple-light);
+    color: var(--purple-dark);
+    border-color: var(--purple-primary);
+  }
+
+  .flow-node.output {
+    background: #E6F9F0;
+    color: #0D6E3D;
+    border-color: var(--green);
+  }
+
+  .flow-node.ai {
+    background: linear-gradient(135deg, #1a0533, #3d0f80);
+    color: #fff;
+    border-color: var(--purple-mid);
+  }
+
+  .flow-node .node-icon {
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .flow-node .node-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    font-family: 'Funnel Display', sans-serif;
+  }
+
+  .flow-node .node-sub {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    line-height: 1.3;
+  }
+
+  .flow-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-align: center;
+    font-weight: 500;
+  }
+
+  /* DETAILED STEPS */
+  .steps-list { display: flex; flex-direction: column; gap: 16px; }
+
+  .step-item {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    transition: box-shadow 0.2s;
+  }
+
+  .step-item:hover { box-shadow: 0 4px 16px rgba(102,19,208,0.08); }
+
+  .step-number {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-dark), var(--purple-primary));
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-content h4 {
+    font-family: 'Funnel Display', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .step-content p {
+    font-size: 0.83rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .step-tags { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+  .tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--purple-light);
+    color: var(--purple-dark);
+  }
+
+  .tag.green { background: #E6F9F0; color: #0D6E3D; }
+  .tag.orange { background: #FFF3E0; color: #B45309; }
+  .tag.teal { background: #E0F7F8; color: #0E6B70; }
+  .tag.gray { background: #F3F4F6; color: #374151; }
+
+  /* SCENARIOS */
+  .scenario-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scenario-card.recommended {
+    border-color: var(--purple-primary);
+    border-width: 2px;
+  }
+
+  .scenario-badge {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: var(--purple-primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .scenario-number {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--purple-primary);
+    margin-bottom: 8px;
+  }
+
+  .scenario-title {
+    font-family: 'Funnel Display', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .scenario-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .scenario-pros, .scenario-cons {
+    margin-top: 12px;
+  }
+
+  .scenario-pros h5, .scenario-cons h5 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .scenario-pros h5 { color: var(--green); }
+  .scenario-cons h5 { color: var(--danger); }
+
+  .pros-list, .cons-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .pros-list li, .cons-list li {
+    font-size: 0.82rem;
+    color: var(--muted);
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.4;
+  }
+
+  .pros-list li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+  .cons-list li::before { content: '×'; position: absolute; left: 0; color: var(--danger); font-weight: 700; }
+
+  /* FLOW DIAGRAM SVG-STYLE */
+  .flow-diagram {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 16px;
+  }
+
+  .fnode {
+    background: var(--purple-light);
+    border: 2px solid var(--purple-primary);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--purple-dark);
+    text-align: center;
+    min-width: 130px;
+    flex-shrink: 0;
+  }
+
+  .fnode.dark {
+    background: linear-gradient(135deg, var(--purple-dark), var(--purple-primary));
+    color: #fff;
+    border-color: var(--purple-dark);
+  }
+
+  .fnode.green {
+    background: #E6F9F0;
+    border-color: var(--green);
+    color: #0D6E3D;
+  }
+
+  .fnode.gray {
+    background: #F3F4F6;
+    border-color: #D1D5DB;
+    color: #374151;
+  }
+
+  .fnode.orange {
+    background: #FFF3E0;
+    border-color: var(--orange);
+    color: #B45309;
+  }
+
+  .farrow {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, var(--purple-primary), var(--purple-mid));
+    position: relative;
+    min-width: 20px;
+  }
+
+  .farrow::after {
+    content: '';
+    position: absolute;
+    right: -1px; top: -5px;
+    border: 6px solid transparent;
+    border-left-color: var(--purple-mid);
+    border-right: none;
+  }
+
+  .farrow-down {
+    width: 2px;
+    height: 24px;
+    background: linear-gradient(180deg, var(--purple-primary), var(--purple-mid));
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .farrow-down::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: -5px;
+    border: 6px solid transparent;
+    border-top-color: var(--purple-mid);
+    border-bottom: none;
+  }
+
+  .fnode-sub {
+    font-size: 0.68rem;
+    font-weight: 400;
+    opacity: 0.8;
+    margin-top: 2px;
+    display: block;
+  }
+
+  /* QUESTIONS */
+  .questions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid var(--purple-primary);
+  }
+
+  .question-card.critical { border-left-color: var(--danger); }
+  .question-card.info { border-left-color: var(--teal); }
+
+  .question-card h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .question-card p {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* SHEETS TABLE */
+  .sheets-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .sheet-tab {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    border-top: 3px solid var(--purple-primary);
+  }
+
+  .sheet-tab .sheet-icon {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .sheet-tab h4 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    font-family: 'Funnel Display', sans-serif;
+    color: var(--fg);
+  }
+
+  .sheet-tab p {
+    font-size: 0.7rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* TIMELINE */
+  .timeline {
+    display: flex;
+    gap: 0;
+    position: relative;
+    margin-top: 24px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 24px; left: 0; right: 0;
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+  }
+
+  .timeline-item {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .timeline-dot {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--purple-primary);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin: 0 auto 12px;
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--purple-primary);
+  }
+
+  .timeline-dot.done { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+  .timeline-dot.pending { background: var(--border); box-shadow: 0 0 0 2px var(--border); color: var(--muted); }
+
+  .timeline-date {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--purple-primary);
+    margin-bottom: 4px;
+  }
+
+  .timeline-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--fg);
+  }
+
+  .timeline-sub {
+    font-size: 0.7rem;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 48px 0;
+  }
+
+  /* FOOTER */
+  .footer {
+    background: var(--fg);
+    padding: 32px 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 48px;
+  }
+
+  .footer p {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.8rem;
+  }
+
+  /* ALERT */
+  .alert {
+    background: #FFF8E6;
+    border: 1px solid #F5D87A;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  .alert p {
+    font-size: 0.83rem;
+    color: #7A5200;
+    line-height: 1.5;
+  }
+
+  .alert.info {
+    background: #EEF2FF;
+    border-color: #C7D2FE;
+  }
+
+  .alert.info p { color: var(--purple-dark); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div style="font-family:'Funnel Display',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.02em;margin-bottom:20px;display:flex;align-items:center;gap:8px">
+      <svg viewBox="0 0 23.34 23.21" height="28" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.3405 18.0675H17.2352V23.1429H22.3405V18.0675Z" fill="#fff"/>
+        <path d="M5.10529 6.64643L0 11.7254V18.0891C0 20.8816 2.27851 23.1467 5.08749 23.1467H11.4887L16.594 18.0714H5.10529V6.64643Z" fill="#fff"/>
+        <path d="M17.2311 6.01289V17.4343L22.3364 12.3589V0.9375H10.8513L5.746 6.01289H17.2311Z" fill="rgba(255,255,255,0.6)"/>
+      </svg>
+      Logcomex.ai
+    </div>
+    <h1>Automação de Conciliação Bancária</h1>
+    <p>Contas a Pagar · Kamilla Scheidt · Agosto 2026</p>
+  </div>
+  <div class="header-badge">
+    <strong>Fluxo A</strong>
+    Conciliação Semanal
+    <span style="font-size:0.7rem;opacity:0.75;display:block;margin-top:2px">Entrega: 31/08 empresa · 04/09 curso</span>
+    <br>
+    <strong>Fluxo B</strong>
+    Fechamento Mensal
+    <span style="font-size:0.7rem;opacity:0.75;display:block;margin-top:2px">Extensão do Fluxo A · Entrega: Setembro</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <a href="#visao-geral" class="active">Visão Geral</a>
+  <a href="#fluxo-a">Fluxo Semanal</a>
+  <a href="#cenarios">Cenários de Integração</a>
+  <a href="#sheets">Planilha</a>
+  <a href="#reuniao">Reunião de Segunda</a>
+</div>
+
+<main>
+
+  <!-- VISAO GERAL -->
+  <section class="section" id="visao-geral">
+    <div class="section-label">Contexto</div>
+    <div class="section-title">O que essa automação resolve</div>
+    <div class="section-desc">Hoje a conciliação bancária é feita manualmente toda semana — exportando dados, cruzando planilhas, conferindo saldos, formatando e-mail. O objetivo é automatizar esse processo de ponta a ponta, mantendo Kamilla no controle da validação final antes de enviar para a contabilidade.</div>
+
+    <div class="alert info">
+      <span style="font-size:1.2rem">💡</span>
+      <p><strong>Governança clara:</strong> O workflow não executa nada automaticamente. Kamilla clica para rodar, confere o resultado no Sheets, valida o checklist de fechamento e decide se envia o e-mail. Nenhuma ação sem aprovação humana.</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="overview-card">
+        <div class="icon">🏦</div>
+        <h3>Hoje (manual)</h3>
+        <p>Exporta planilha do Omie, confere extrato por extrato, preenche Sheets linha a linha, monta e-mail com tabelas.</p>
+      </div>
+      <div class="overview-card" style="border-left-color:var(--orange)">
+        <div class="icon" style="background:#FFF3E0">⚡</div>
+        <h3>Com automação</h3>
+        <p>Clica para rodar, aguarda o workflow buscar dados, cruzar, sinalizar divergências. Kamilla analisa e prepara o e-mail, valida e confirma.</p>
+      </div>
+      <div class="overview-card" style="border-left-color:var(--green)">
+        <div class="icon" style="background:#E6F9F0">📊</div>
+        <h3>Entregável final</h3>
+        <p>Planilha de conciliação + rascunho de e-mail com indicadores inline para a contabilidade.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- FLUXO A -->
+  <section class="section" id="fluxo-a">
+    <div class="section-label">Fluxo A — Conciliação Semanal</div>
+    <div class="section-title">Como o workflow funciona</div>
+    <div class="section-desc">Sempre acumulado do dia 01 do mês até o dia conciliado. Disparado manualmente por Kamilla 1x por semana.</div>
+
+    <div class="alert info">
+      <span style="font-size:1.2rem">📌</span>
+      <p><strong>Este é o Fluxo A — Conciliação Semanal.</strong> Existe também um <strong>Fluxo B — Fechamento Mensal</strong>, que se conecta a este ao final de cada mês. O Fluxo B aproveita toda a base já conciliada e adiciona análises complementares: conciliação de investimentos, mais contas e aplicações financeiras. O Fluxo B é uma extensão do Fluxo A — não substitui, complementa.</p>
+    </div>
+
+    <!-- N8N STYLE FLOW -->
+    <div style="background:#1a1a2e;border-radius:16px;padding:36px 28px;margin-bottom:32px;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
+      <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#4a4a6a;margin-bottom:28px;display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#ff5f57;display:inline-block"></span>
+        <span style="width:8px;height:8px;border-radius:50%;background:#ffbd2e;display:inline-block"></span>
+        <span style="width:8px;height:8px;border-radius:50%;background:#28c840;display:inline-block"></span>
+        <span style="margin-left:8px">N8N — Fluxo A · Conciliação Semanal</span>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+
+        <!-- NODE 1 -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="background:#2d1b69;border:2px solid #6613D0;border-radius:10px;width:100px;padding:12px 8px;text-align:center;box-shadow:0 0 16px rgba(102,19,208,0.4)">
+            <div style="font-size:1.2rem;margin-bottom:6px">🖱️</div>
+            <div style="font-size:0.62rem;font-weight:700;color:#a78bfa;margin-bottom:2px">Manual Trigger</div>
+            <div style="font-size:0.55rem;color:#6b6b9a;line-height:1.3">Kamilla clica para iniciar</div>
+          </div>
+          <div style="font-size:0.58rem;color:#4a4a6a;font-weight:600">N8N</div>
+        </div>
+
+        <div style="flex:1;height:2px;background:linear-gradient(90deg,#6613D0,#8E44ED);position:relative;margin-bottom:20px"><div style="position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left-color:#8E44ED;border-right:none"></div></div>
+
+        <!-- NODE 2 -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="background:#1e1e3a;border:2px solid #4a3080;border-radius:10px;width:100px;padding:12px 8px;text-align:center;box-shadow:0 0 10px rgba(74,48,128,0.3)">
+            <div style="font-size:1.2rem;margin-bottom:6px">🔌</div>
+            <div style="font-size:0.62rem;font-weight:700;color:#c4b5fd;margin-bottom:2px">HTTP Request</div>
+            <div style="font-size:0.55rem;color:#6b6b9a;line-height:1.3">API Omie pagamentos + saldos</div>
+          </div>
+          <div style="font-size:0.58rem;color:#4a4a6a;font-weight:600">Somente leitura</div>
+        </div>
+
+        <div style="flex:1;height:2px;background:linear-gradient(90deg,#4a3080,#8E44ED);position:relative;margin-bottom:20px"><div style="position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left-color:#8E44ED;border-right:none"></div></div>
+
+        <!-- NODE 3 -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="background:#1e1e3a;border:2px solid #4a3080;border-radius:10px;width:100px;padding:12px 8px;text-align:center;box-shadow:0 0 10px rgba(74,48,128,0.3)">
+            <div style="font-size:1.2rem;margin-bottom:6px">📁</div>
+            <div style="font-size:0.62rem;font-weight:700;color:#c4b5fd;margin-bottom:2px">Google Drive</div>
+            <div style="font-size:0.55rem;color:#6b6b9a;line-height:1.3">Extratos e faturas bancárias</div>
+          </div>
+          <div style="font-size:0.58rem;color:#4a4a6a;font-weight:600">PDF + Excel</div>
+        </div>
+
+        <div style="flex:1;height:2px;background:linear-gradient(90deg,#4a3080,#8E44ED);position:relative;margin-bottom:20px"><div style="position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left-color:#8E44ED;border-right:none"></div></div>
+
+        <!-- NODE 4 -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="background:#1e1e3a;border:2px solid #4a3080;border-radius:10px;width:100px;padding:12px 8px;text-align:center;box-shadow:0 0 10px rgba(74,48,128,0.3)">
+            <div style="font-size:1.2rem;margin-bottom:6px">📄</div>
+            <div style="font-size:0.62rem;font-weight:700;color:#c4b5fd;margin-bottom:2px">Google Sheets</div>
+            <div style="font-size:0.55rem;color:#6b6b9a;line-height:1.3">SWILE — planilha DP</div>
+          </div>
+          <div style="font-size:0.58rem;color:#4a4a6a;font-weight:600">Planilha DP</div>
+        </div>
+
+        <div style="flex:1;height:2px;background:linear-gradient(90deg,#4a3080,#8E44ED);position:relative;margin-bottom:20px"><div style="position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left-color:#8E44ED;border-right:none"></div></div>
+
+        <!-- NODE 5 -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="background:#1e1e3a;border:2px solid #4a3080;border-radius:10px;width:100px;padding:12px 8px;text-align:center;box-shadow:0 0 10px rgba(74,48,128,0.3)">
+            <div style="font-size:1.2rem;margin-bottom:6px">🔍</div>
+            <div style="font-size:0.62rem;font-weight:700;color:#c4b5fd;margin-bottom:2px">HTTP Request</div>
+            <div style="font-size:0.55rem;color:#6b6b9a;line-height:1.3">Qive — NF-e e NFS-e</div>
+          </div>
+          <div style="font-size:0.58rem;color:#4a4a6a;font-weight:600">Conciliação fiscal</div>
+        </div>
+
+        <div style="flex:1;height:2px;background:linear-gradient(90deg,#4a3080,#8E44ED);position:relative;margin-bottom:20px"><div style="position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left-color:#8E44ED;border-right:none"></div></div>
+
+        <!-- NODE 6 -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="background:#0d0d1f;border:2px solid #6613D0;border-radius:10px;width:100px;padding:12px 8px;text-align:center;box-shadow:0 0 20px rgba(102,19,208,0.5)">
+            <div style="font-size:1.2rem;margin-bottom:6px">🤖</div>
+            <div style="font-size:0.62rem;font-weight:700;color:#a78bfa;margin-bottom:2px">AI Agent</div>
+            <div style="font-size:0.55rem;color:#6b6b9a;line-height:1.3">R1–R15 + análises + Top 10</div>
+          </div>
+          <div style="font-size:0.58rem;color:#4a4a6a;font-weight:600">Análise crítica</div>
+        </div>
+
+        <div style="flex:1;height:2px;background:linear-gradient(90deg,#6613D0,#1FAC66);position:relative;margin-bottom:20px"><div style="position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left-color:#1FAC66;border-right:none"></div></div>
+
+        <!-- NODE 7 -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="background:#0d1f16;border:2px solid #1FAC66;border-radius:10px;width:100px;padding:12px 8px;text-align:center;box-shadow:0 0 14px rgba(31,172,102,0.3)">
+            <div style="font-size:1.2rem;margin-bottom:6px">📊</div>
+            <div style="font-size:0.62rem;font-weight:700;color:#4ade80;margin-bottom:2px">Google Sheets</div>
+            <div style="font-size:0.55rem;color:#4a6a5a;line-height:1.3">8 abas + indicadores</div>
+          </div>
+          <div style="font-size:0.58rem;color:#4a4a6a;font-weight:600">Entregável</div>
+        </div>
+
+        <div style="flex:1;height:2px;background:linear-gradient(90deg,#1FAC66,#16a34a);position:relative;margin-bottom:20px"><div style="position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left-color:#16a34a;border-right:none"></div></div>
+
+        <!-- NODE 8 -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="background:#0d1f16;border:2px solid #1FAC66;border-radius:10px;width:100px;padding:12px 8px;text-align:center;box-shadow:0 0 14px rgba(31,172,102,0.3)">
+            <div style="font-size:1.2rem;margin-bottom:6px">✉️</div>
+            <div style="font-size:0.62rem;font-weight:700;color:#4ade80;margin-bottom:2px">Gmail</div>
+            <div style="font-size:0.55rem;color:#4a6a5a;line-height:1.3">Rascunho — Kamilla valida</div>
+          </div>
+          <div style="font-size:0.58rem;color:#4a4a6a;font-weight:600">Gmail</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DETAILED STEPS -->
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>API Omie — Extração da base de pagamentos</h4>
+          <p>O workflow acessa o Omie via API (somente leitura) e busca o relatório "Contas a Pagar e a Receber por mês/ano" filtrando o mês atual + próximo mês. Cria automaticamente as colunas calculadas: <strong>Tipo</strong> (Pipefy ou Cartão de Crédito), <strong>Anexo</strong> (OK / Sem Anexo / Não gera doc fiscal / Solicitado) e <strong>Responsável</strong> (Contas a Pagar ou Diretoria).</p>
+          <div class="step-tags">
+            <span class="tag">Omie API</span>
+            <span class="tag">30 colunas</span>
+            <span class="tag gray">Somente leitura</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>API Omie — Saldos das contas</h4>
+          <p>Busca o saldo de todas as 23 contas ativas no Omie (contas correntes, cartões de crédito, Caixinha, SWILE, Onfly, XP). Saldo do dia conciliado para cada conta, com dados de instituição, agência e número.</p>
+          <div class="step-tags">
+            <span class="tag">23 contas</span>
+            <span class="tag">Bradesco · Santander · Itaú · Safra · XP · Citibank</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Google Drive — Coleta de extratos e faturas</h4>
+          <p>Acessa a pasta do mês correspondente no Drive (<code>Conciliação Bancária / 2026 / 08. Agosto</code>) e localiza os arquivos pelo padrão de nomenclatura. Arquivos com <strong>"Fatura"</strong> no nome → cartão de crédito. Demais → conta corrente. Prioriza Excel para leitura; PDF fica como evidência. Kamilla faz o upload manualmente antes de rodar.</p>
+          <div class="step-tags">
+            <span class="tag teal">Google Drive</span>
+            <span class="tag gray">Upload manual por Kamilla</span>
+            <span class="tag">PDF + Excel</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h4>Google Sheets SWILE — Planilha do DP</h4>
+          <p>Lê a aba "SWILE Financeiro 2026" da planilha do DP, localiza o bloco semanal correspondente ao período e extrai: saldo final, TEDs recebidas por CC, total por categoria. Cruza com os lançamentos da conta SWILE no Omie.</p>
+          <div class="step-tags">
+            <span class="tag teal">Google Sheets API</span>
+            <span class="tag">Atualizada semanalmente pelo DP</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h4>Qive — Conciliação fiscal NF vs Omie</h4>
+          <p>Busca as NF-e e NFS-e emitidas contra o CNPJ da Logcomex no período. Cruza com os lançamentos do Omie por CNPJ + número da NF. Identifica: notas conciliadas OK, divergências de valor/razão social/tipo de documento, notas na Qive não lançadas no Omie, notas canceladas.</p>
+          <div class="step-tags">
+            <span class="tag orange">Bloco separado</span>
+            <span class="tag">NF-e + NFS-e</span>
+            <span class="tag gray">Aba própria no Sheets</span>
+          </div>
+          <p style="margin-top:12px;font-size:0.8rem;color:var(--purple-primary);font-weight:500">* É a partir deste bloco que começaria a conexão com o fluxo da Carol, caso optemos pelo Cenário 2 — aproveitando a extração do Omie que ela já tem configurada.</p>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">6</div>
+        <div class="step-content">
+          <h4>AI Agent — Análise crítica e cruzamento</h4>
+          <p>Aplica as 15 regras de validação (R1 a R15) na base de pagamentos. Confere entradas, saídas e saldo diário de cada conta corrente vs. extrato do banco. Valida SWILE contra planilha do DP. Gera Top 10 por fornecedor, categoria, CC e departamento. Compara com histórico acumulado na memória (threshold: 50% + R$20.000 de variação).</p>
+          <div class="step-tags">
+            <span class="tag">R1 a R15</span>
+            <span class="tag">Top 10 fornecedores</span>
+            <span class="tag">Variação mensal</span>
+            <span class="tag green">Memória acumulada</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">7</div>
+        <div class="step-content">
+          <h4>Google Sheets — Planilha de conciliação (8 abas)</h4>
+          <p>O workflow cria/atualiza a planilha com todas as abas: Saldo das Contas (verde/vermelho por conta), Base de Pagamentos, Conciliação Qive, Indicador de Anexo (4 blocos com meta de 80% OK), Análise Crítica, Análises Quantitativas, Resumo Executivo e Checklist de Fechamento. Kamilla revisa e trata cada ponto antes de liberar o e-mail.</p>
+          <div class="step-tags">
+            <span class="tag teal">8 abas</span>
+            <span class="tag green">Meta 80% anexos OK</span>
+            <span class="tag">Checklist de validação</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">8</div>
+        <div class="step-content">
+          <h4>Gmail — Rascunho do e-mail de fechamento</h4>
+          <p>Cria rascunho no Gmail de Kamilla com: período conciliado, tabelas de indicador de anexo (Cartão e Pipefy) inline no corpo, insights do período, link do Sheets e link do Drive. Kamilla revisa e decide se envia. Destinatários: Maiara, Thaynara, Niccolas, Thaiane, Adriano, Matheus, Caroline.</p>
+          <div class="step-tags">
+            <span class="tag green">Rascunho — Kamilla aprova</span>
+            <span class="tag">kamilla@logcomex.com</span>
+            <span class="tag">7 destinatários</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- CENARIOS -->
+  <section class="section" id="cenarios">
+    <div class="section-label">Decisão arquitetural</div>
+    <div class="section-title">Cenários de integração com a Carol</div>
+    <div class="section-desc">A Carol tem um fluxo parecido no N8N do Ramon, incluindo integração com a API do Omie. A decisão de como conectar (ou não) os dois fluxos será tomada na reunião de segunda com Ana Lívia e Carol.</div>
+
+    <div class="grid-2">
+      <div class="scenario-card recommended">
+        <div class="scenario-badge">RECOMENDADO</div>
+        <div class="scenario-number">Cenário 1</div>
+        <div class="scenario-title">Fluxo independente</div>
+        <div class="scenario-desc">Kamilla tem seu próprio workflow completo no <code>ailab.logcomex.com</code>, com credenciais próprias da API Omie. Totalmente independente do fluxo da Carol.</div>
+
+        <div style="background:var(--purple-light);border-radius:10px;padding:16px;margin-bottom:16px">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--purple-dark);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em">Diagrama do fluxo</div>
+          <div style="font-size:0.78rem;color:var(--purple-dark);line-height:2">
+            🖱️ Gatilho Manual (Kamilla)
+            <br>↓
+            🔌 API Omie <em style="opacity:0.7">(credencial própria)</em>
+            <br>↓
+            📁 Drive → Extratos
+            <br>↓
+            📄 SWILE Sheets
+            <br>↓
+            🔍 Qive
+            <br>↓
+            🤖 AI Agent → Análise R1–R15
+            <br>↓
+            📊 Google Sheets (8 abas)
+            <br>↓
+            ✉️ Rascunho Gmail
+          </div>
+        </div>
+
+        <div class="scenario-pros">
+          <h5>✓ Vantagens</h5>
+          <ul class="pros-list">
+            <li>Auditável — fluxo 100% rastreável e de propriedade da Kamilla</li>
+            <li>Independente — nenhuma dependência de terceiros</li>
+            <li>Seguro para o curso (entrega do JSON próprio)</li>
+            <li>Sem risco de quebrar se o fluxo da Carol mudar</li>
+          </ul>
+        </div>
+        <div class="scenario-cons">
+          <h5>× Desvantagens</h5>
+          <ul class="cons-list">
+            <li>Precisa de credencial própria das APIs — Omie e Qive</li>
+            <li>A Carol já tem ambas configuradas — será necessário avaliar o compartilhamento</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="scenario-number">Cenário 2</div>
+        <div class="scenario-title">Conectado ao fluxo da Carol</div>
+        <div class="scenario-desc">O fluxo da Carol resolve a extração do Omie. Kamilla "herda" essa perna via webhook e adiciona seus blocos de análise depois.</div>
+
+        <div style="background:#F3F4F6;border-radius:10px;padding:16px;margin-bottom:16px">
+          <div style="font-size:0.72rem;font-weight:700;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em">Diagrama do fluxo</div>
+          <div style="font-size:0.78rem;color:#374151;line-height:2">
+            🔌 API Omie <em style="opacity:0.6">(fluxo da Carol)</em>
+            <br>↓ <em style="font-size:0.7rem;opacity:0.6">Webhook → passa dados para Kamilla</em>
+            <br>🖱️ Gatilho Kamilla recebe os dados
+            <br>↓
+            📁 Drive → Extratos
+            <br>↓
+            📄 SWILE Sheets + 🔍 Qive
+            <br>↓
+            🤖 AI Agent → Análise R1–R15
+            <br>↓
+            📊 Google Sheets + ✉️ Gmail
+          </div>
+        </div>
+
+        <div class="scenario-pros">
+          <h5>✓ Vantagens</h5>
+          <ul class="pros-list">
+            <li>Resolve o problema da API Omie sem credencial própria</li>
+            <li>Uma só chamada à API — menos sobrecarga</li>
+          </ul>
+        </div>
+        <div class="scenario-cons">
+          <h5>× Desvantagens</h5>
+          <ul class="cons-list">
+            <li>Depende do fluxo da Carol — se ela mudar, quebra</li>
+            <li>Dados diferentes podem não bater (Carol extrai o mesmo que Kamilla precisa?)</li>
+            <li>Dificulta auditoria — responsabilidade dividida</li>
+            <li>Preciso rodar a automação de forma independente e minhas conferências são diferentes das que ela entrega</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SHEETS -->
+  <section class="section" id="sheets">
+    <div class="section-label">Entregável</div>
+    <div class="section-title">Estrutura da planilha de conciliação</div>
+    <div class="section-desc">O workflow cria/atualiza uma planilha no Google Sheets com 8 abas, cobrindo desde os saldos brutos até o checklist de validação final.</div>
+
+    <div class="sheets-grid">
+      <div class="sheet-tab">
+        <span class="sheet-icon">🏦</span>
+        <h4>Saldo das Contas</h4>
+        <p>23 contas · Verde = OK · Vermelho = divergência · Saldo diário conferido</p>
+      </div>
+      <div class="sheet-tab">
+        <span class="sheet-icon">📋</span>
+        <h4>Base de Pagamentos</h4>
+        <p>Dados do Omie · 30 colunas · Tipo, Anexo e Responsável calculados automaticamente</p>
+      </div>
+      <div class="sheet-tab">
+        <span class="sheet-icon">🔍</span>
+        <h4>Conciliação Qive</h4>
+        <p>NF-e e NFS-e vs Omie · Divergências · Notas faltando · Notas canceladas</p>
+      </div>
+      <div class="sheet-tab">
+        <span class="sheet-icon">📎</span>
+        <h4>Indicador de Anexo</h4>
+        <p>Meta 80% OK · Cartão (mês seguinte) · Pipefy · Por conta corrente · Por tipo de doc</p>
+      </div>
+      <div class="sheet-tab">
+        <span class="sheet-icon">⚠️</span>
+        <h4>Análise Crítica</h4>
+        <p>Regras R1 a R15 · Cada apontamento com lançamento, regra violada e gravidade</p>
+      </div>
+      <div class="sheet-tab">
+        <span class="sheet-icon">📈</span>
+        <h4>Análises Quantitativas</h4>
+        <p>Top 10: fornecedores, categorias, CCs, contas · Variação mensal · Threshold 50% + R$20k</p>
+      </div>
+      <div class="sheet-tab">
+        <span class="sheet-icon">📄</span>
+        <h4>Resumo Executivo</h4>
+        <p>Status geral · Pontos de atenção · Insights do período · Sugestões de melhoria</p>
+      </div>
+      <div class="sheet-tab">
+        <span class="sheet-icon">✅</span>
+        <h4>Checklist de Fechamento</h4>
+        <p>Todos os pontos pendentes · Status: Pendente / Corrigido / Aceito · Kamilla valida antes de enviar</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- REUNIAO -->
+  <section class="section" id="reuniao">
+    <div class="section-label">Segunda-feira</div>
+    <div class="section-title">Reunião com Ana Lívia e Carol — Perguntas</div>
+    <div class="section-desc">O objetivo da reunião é sair com a decisão sobre a API do Omie e a arquitetura do fluxo. Leve essas perguntas.</div>
+
+    <div class="questions-grid">
+      <div class="question-card critical">
+        <h4>🔴 Credencial da API</h4>
+        <p>Posso ter uma credencial própria (App Key + App Secret) para o N8N, separada da que a Carol usa? Ou é uma chave única para todo mundo?</p>
+      </div>
+      <div class="question-card critical">
+        <h4>🔴 Limite de chamadas</h4>
+        <p>Qual é o limite de requisições da API do Omie por minuto/hora? Se eu rodar meu fluxo ao mesmo tempo que o da Carol, tem risco de throttling?</p>
+      </div>
+      <div class="question-card">
+        <h4>🟣 Fluxo da Carol</h4>
+        <p>O que o fluxo da Carol extrai do Omie exatamente? Ela usa o relatório "Contas a Pagar e a Receber por mês/ano"? Com quais filtros?</p>
+      </div>
+      <div class="question-card">
+        <h4>🟣 Arquitetura conjunta</h4>
+        <p>Faz mais sentido conectar meu fluxo ao da Carol via webhook (Cenário 2) ou ter fluxos separados com credenciais próprias (Cenário 1)?</p>
+      </div>
+      <div class="question-card info">
+        <h4>🔵 Permissões do Omie</h4>
+        <p>A API do Omie que vocês usam permite acesso a: saldos de contas correntes, lançamentos de CP/CR, extrato por conta e período?</p>
+      </div>
+      <div class="question-card info">
+        <h4>🔵 Ambiente de produção</h4>
+        <p>O fluxo vai rodar no <code>ailab.logcomex.com</code> — esse ambiente é estável para produção ou precisamos migrar para o N8N do Ramon depois?</p>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div style="margin-top:48px">
+      <div class="section-label">Cronograma</div>
+      <div class="section-title" style="font-size:1.2rem">Datas importantes</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot done">✓</div>
+          <div class="timeline-date">21/08</div>
+          <div class="timeline-label">Mapeamento completo</div>
+          <div class="timeline-sub">Fluxo desenhado, regras definidas, material pronto</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:var(--orange);box-shadow:0 0 0 2px var(--orange)">24</div>
+          <div class="timeline-date">24/08</div>
+          <div class="timeline-label">Reunião API</div>
+          <div class="timeline-sub">Ana Lívia + Carol · Decisão de arquitetura</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot pending">⚙</div>
+          <div class="timeline-date">26–29/08</div>
+          <div class="timeline-label">Desenvolvimento</div>
+          <div class="timeline-sub">Cowork · Montagem do workflow no N8N</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot pending">🏢</div>
+          <div class="timeline-date">31/08</div>
+          <div class="timeline-label">Entrega empresa</div>
+          <div class="timeline-sub">Workflow em produção · Logcomex</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot pending">🎓</div>
+          <div class="timeline-date">04/09</div>
+          <div class="timeline-label">Entrega curso</div>
+          <div class="timeline-sub">JSON blueprint · AI Blue Belt</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot pending">🏆</div>
+          <div class="timeline-date">09/09</div>
+          <div class="timeline-label">Masterclass</div>
+          <div class="timeline-sub">Apresentação 3 min · Possível apresentação para diretoria</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>
+    <svg viewBox="0 0 197 30" height="20" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22.3405 18.0675H17.2352V23.1429H22.3405V18.0675Z" fill="#fff"/>
+      <path d="M5.10529 6.64643L0 11.7254V18.0891C0 20.8816 2.27851 23.1467 5.08749 23.1467H11.4887L16.594 18.0714H5.10529V6.64643Z" fill="#fff"/>
+      <path d="M17.2311 6.01289V17.4343L22.3364 12.3589V0.9375H10.8513L5.746 6.01289H17.2311Z" fill="rgba(255,255,255,0.6)"/>
+    </svg>
+  </div>
+  <p>Automação de Conciliação Bancária · Contas a Pagar · Kamilla Scheidt · Agosto 2026</p>
+  <p>Confidencial — uso interno</p>
+</div>
+
+<script>
+  // Smooth scroll + active nav
+  const navLinks = document.querySelectorAll('.nav a');
+  navLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      navLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+    });
+  });
+
+  // Intersection observer for active nav
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
