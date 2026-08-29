@@ -1,0 +1,123 @@
+name: Fluxo A - Conciliação Semanal
+
+on:
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: 'Qual webhook do n8n disparar'
+        required: true
+        type: choice
+        default: 'teste'
+        options:
+          - teste
+          - producao
+      mes_referencia:
+        description: 'Mês de referência (AAAA-MM). Deixe em branco para usar o mês atual.'
+        required: false
+        default: ''
+      observacao:
+        description: 'Observação opcional (aparece no log e no e-mail final)'
+        required: false
+        default: ''
+
+jobs:
+  disparar-fluxo-a:
+    name: Disparar webhook do n8n
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Calcular mês de referência e URL do webhook
+        id: prep
+        run: |
+          if [ -z "${{ github.event.inputs.mes_referencia }}" ]; then
+            MES=$(date +'%Y-%m')
+          else
+            MES="${{ github.event.inputs.mes_referencia }}"
+          fi
+          echo "mes=$MES" >> $GITHUB_OUTPUT
+          echo "Mês de referência: $MES"
+
+          if [ "${{ github.event.inputs.ambiente }}" = "producao" ]; then
+            URL="https://ramonlogcomex.app.n8n.cloud/webhook/fluxo-a-conciliacao-semanal"
+          else
+            URL="https://ramonlogcomex.app.n8n.cloud/webhook-test/fluxo-a-conciliacao-semanal"
+          fi
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "Ambiente: ${{ github.event.inputs.ambiente }}"
+          echo "URL: $URL"
+
+      - name: Disparar webhook do Fluxo A no n8n
+        env:
+          N8N_WEBHOOK_TOKEN: ${{ secrets.N8N_WEBHOOK_TOKEN }}
+          MES_REFERENCIA: ${{ steps.prep.outputs.mes }}
+          WEBHOOK_URL: ${{ steps.prep.outputs.url }}
+          AMBIENTE: ${{ github.event.inputs.ambiente }}
+          OBSERVACAO: ${{ github.event.inputs.observacao }}
+          DISPARADO_POR: ${{ github.actor }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${N8N_WEBHOOK_TOKEN}" ]; then
+            echo "::error::Secret N8N_WEBHOOK_TOKEN não configurado no repositório."
+            echo "Vá em Settings → Secrets and variables → Actions → New repository secret."
+            exit 1
+          fi
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "mes_referencia": "${MES_REFERENCIA}",
+            "triggered_by": "github-actions",
+            "ambiente": "${AMBIENTE}",
+            "disparado_por": "${DISPARADO_POR}",
+            "observacao": "${OBSERVACAO}",
+            "run_url": "${RUN_URL}"
+          }
+          EOF
+          )
+
+          echo "Payload que será enviado ao n8n:"
+          echo "${PAYLOAD}"
+          echo "URL de destino: ${WEBHOOK_URL}"
+
+          HTTP_CODE=$(curl \
+            --silent \
+            --show-error \
+            --output response.txt \
+            --write-out '%{http_code}' \
+            --max-time 30 \
+            --request POST \
+            --header "X-Api-Key: ${N8N_WEBHOOK_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data "${PAYLOAD}" \
+            "${WEBHOOK_URL}")
+
+          echo "---"
+          echo "HTTP status: ${HTTP_CODE}"
+          echo "Resposta do n8n:"
+          cat response.txt || true
+          echo ""
+          echo "---"
+
+          if [ "${HTTP_CODE}" -ge 200 ] && [ "${HTTP_CODE}" -lt 300 ]; then
+            echo "::notice::Fluxo A disparado com sucesso no n8n (${AMBIENTE}). Abra o workflow para acompanhar a execução."
+            exit 0
+          fi
+
+          if [ "${HTTP_CODE}" = "401" ] || [ "${HTTP_CODE}" = "403" ]; then
+            echo "::error::Autenticação recusada pelo n8n. Verifique se o secret N8N_WEBHOOK_TOKEN bate com o Value da credential 'N8N Webhook GitHub Actions' no n8n."
+            exit 1
+          fi
+
+          if [ "${HTTP_CODE}" = "404" ]; then
+            if [ "${AMBIENTE}" = "producao" ]; then
+              echo "::error::Webhook de produção não encontrado. Confira se o workflow do n8n está ATIVADO (toggle Active no canto superior direito) e se o path é 'fluxo-a-conciliacao-semanal'."
+            else
+              echo "::error::Webhook de teste não encontrado. Confira se você clicou em 'Listen for test event' no node GitHub Actions Trigger no n8n (o listener expira em ~2 min)."
+            fi
+            exit 1
+          fi
+
+          echo "::error::Falha inesperada ao disparar o webhook (HTTP ${HTTP_CODE})."
+          exit 1
