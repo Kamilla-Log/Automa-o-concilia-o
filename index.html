@@ -731,13 +731,10 @@
     <p>Contas a Pagar · Kamilla Scheidt · Agosto 2026</p>
   </div>
   <div class="header-badge">
-    <strong>Fluxo A</strong>
-    Conciliação Semanal
-    <span style="font-size:0.7rem;opacity:0.75;display:block;margin-top:2px">Entrega: 31/08 empresa · 04/09 curso</span>
-    <br>
-    <strong>Extensão — Fechamento</strong>
-    2º dia útil: Aplicações BR
-    <span style="font-size:0.7rem;opacity:0.75;display:block;margin-top:2px">3º dia útil: Offshore USD · Setembro</span>
+    <strong>Fluxo A</strong> · 9 nodes · toda semana
+    <span style="font-size:0.7rem;opacity:0.75;display:block;margin-top:2px">Entrega: 31/08 empresa · 04/09 JSON curso</span>
+    <strong>D2</strong> · 8 nodes · 2º dia útil · Aplicações BR
+    <span style="font-size:0.7rem;opacity:0.75;display:block;margin-top:2px"><strong>D3</strong> · 8 nodes · 3º dia útil · Offshore USD</span>
   </div>
 </div>
 
@@ -789,11 +786,11 @@
   <section class="section" id="fluxo-a">
     <div class="section-label">Fluxo A — Conciliação Semanal</div>
     <div class="section-title">Como o workflow funciona</div>
-    <div class="section-desc">Sempre acumulado do dia 01 do mês até o dia conciliado. Disparado manualmente por Kamilla 1x por semana.</div>
+    <div class="section-desc">Sempre acumulado do dia 01 do mês até o dia conciliado. Disparado manualmente por Kamilla 1x por semana. No fechamento mensal, os fluxos D2 e D3 complementam — sem rerrodar o mês inteiro, só o que falta fechar.</div>
 
     <div class="alert info">
       <span style="font-size:1.2rem">📌</span>
-      <p><strong>3 fluxos, 3 dias consecutivos no fechamento.</strong> O Fluxo A roda toda semana. No fechamento mensal, ele é executado uma última vez (conciliação completa do mês) e nos dois dias seguintes são disparadas as extensões de aplicações BR e offshore.</p>
+      <p><strong>3 fluxos, 3 dias no fechamento mensal.</strong> O Fluxo A roda toda semana e garante a conciliação do período. No fechamento, D2 faz um check final (nada mudou no Omie desde a última semana) e processa as aplicações BR. D3 confia no D2 e vai direto para o offshore — sem novo check. Todos geram rascunho no Gmail: Kamilla sempre aprova antes de enviar.</p>
     </div>
 
     <!-- 3 CARDS GRANDES -->
@@ -805,32 +802,131 @@
           <div style="font-size:1.6rem;font-weight:800;color:#fff;min-width:44px;font-family:'Poppins',sans-serif">A</div>
           <div>
             <div style="font-size:0.88rem;font-weight:700;color:#fff;margin-bottom:2px">Fluxo A — Conciliação Semanal</div>
-            <div style="font-size:0.72rem;color:rgba(255,255,255,0.7)">Toda semana · Todas as contas correntes, cartões e planilha SWILE</div>
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.7)">Disparado toda semana pelo GitHub Actions · 12 nodes construídos em 30/08</div>
+          </div>
+          <div style="margin-left:auto;background:rgba(255,255,255,0.15);border-radius:8px;padding:4px 10px;font-size:0.65rem;color:#fff;font-weight:600">✅ Montado no N8N</div>
+        </div>
+
+        <!-- NODES REAIS DO N8N -->
+        <div style="background:#0a0520;padding:20px 20px 8px;overflow-x:auto">
+          <div style="display:flex;align-items:flex-end;gap:0;min-width:900px">
+
+            <!-- 1: GitHub Actions -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #e0e0e0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">⚡</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#a78bfa;text-align:center;line-height:1.3">GitHub Actions<br>Trigger</div>
+              <div style="font-size:0.5rem;color:#6b6b9a;text-align:center">POST</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 2: Omie BR - Base de Pagamentos -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #6613D0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">🌐</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#c4b5fd;text-align:center;line-height:1.3">Omie BR - Base<br>de Pagamentos</div>
+              <div style="font-size:0.5rem;color:#ef4444;text-align:center">⚠ SEM CREDENCIAL</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 3: Omie BR - Saldos das Contas -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #6613D0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">🌐</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#c4b5fd;text-align:center;line-height:1.3">Omie BR -<br>Saldos das Contas</div>
+              <div style="font-size:0.5rem;color:#6b6b9a;text-align:center">POST</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 4: Drive - Pasta do Mês -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #e0e0e0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">🟢</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#c4b5fd;text-align:center;line-height:1.3">Drive -<br>Pasta do Mês</div>
+              <div style="font-size:0.5rem;color:#6b6b9a;text-align:center">search: fileFolder</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 5: Sheets - SWILE Financeiro -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #e0e0e0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">📗</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#c4b5fd;text-align:center;line-height:1.3">Sheets - SWILE<br>Financeiro</div>
+              <div style="font-size:0.5rem;color:#6b6b9a;text-align:center">read: sheet</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 6: Sheets - Base Loggers -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #e0e0e0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">📗</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#c4b5fd;text-align:center;line-height:1.3">Sheets -<br>Base Loggers</div>
+              <div style="font-size:0.5rem;color:#6b6b9a;text-align:center">read: sheet</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 7: Qive - NF-e e NFS-e -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #e0e0e0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">🌐</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#c4b5fd;text-align:center;line-height:1.3">Qive - NF-e<br>e NFS-e</div>
+              <div style="font-size:0.5rem;color:#ef4444;text-align:center">⚠ GET - COLAR URL</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 8: Python - Validacoes R1 a R15 -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #6613D0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">{ }</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#a78bfa;text-align:center;line-height:1.3">Python -<br>Validações R1–R15</div>
+              <div style="font-size:0.5rem;color:#6b6b9a;text-align:center">Code node</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#1DA6AE;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 9: Supabase - Snapshot Mensal -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #e0e0e0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">⚡</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#5eead4;text-align:center;line-height:1.3">Supabase -<br>Snapshot Mensal</div>
+              <div style="font-size:0.5rem;color:#6b6b9a;text-align:center">create: row</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#8E44ED;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 10: AI Agent -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #e0e0e0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">🤖</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#a78bfa;text-align:center;line-height:1.3">AI Agent -<br>Observações...</div>
+              <div style="font-size:0.5rem;color:#6b6b9a;text-align:center">Chat Model + Memory</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#1FAC66;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 11: Sheets - Planilha 8 Abas -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #e0e0e0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">📗</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#4ade80;text-align:center;line-height:1.3">Sheets -<br>Planilha 8 Abas</div>
+              <div style="font-size:0.5rem;color:#6b6b9a;text-align:center">appendOrUpdate: sheet</div>
+            </div>
+            <div style="flex:1;height:1.5px;background:#1FAC66;margin-bottom:28px;min-width:8px"></div>
+
+            <!-- 12: Gmail - Rascunho -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px">
+              <div style="background:#fff;border:2px solid #e0e0e0;border-radius:10px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">✉️</div>
+              <div style="font-size:0.58rem;font-weight:700;color:#4ade80;text-align:center;line-height:1.3">Gmail - Rascunho<br>para Aprovar</div>
+              <div style="font-size:0.5rem;color:#6b6b9a;text-align:center">create: draft</div>
+            </div>
+
           </div>
         </div>
-        <div style="background:#0a0520;padding:20px 20px 8px;display:flex;align-items:flex-end;justify-content:space-between;gap:4px">
-          <div style="text-align:center"><div style="font-size:1.1rem;margin-bottom:4px">⚙️</div><div style="font-size:0.6rem;font-weight:700;color:#a78bfa;line-height:1.2">GitHub</div><div style="font-size:0.52rem;color:#6b6b9a;margin-top:2px">Gatilho</div></div>
-          <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:20px"></div>
-          <div style="text-align:center"><div style="font-size:1.1rem;margin-bottom:4px">🔌</div><div style="font-size:0.6rem;font-weight:700;color:#c4b5fd;line-height:1.2">Omie BR</div><div style="font-size:0.52rem;color:#6b6b9a;margin-top:2px">Somente leitura</div></div>
-          <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:20px"></div>
-          <div style="text-align:center"><div style="font-size:1.1rem;margin-bottom:4px">📁</div><div style="font-size:0.6rem;font-weight:700;color:#c4b5fd;line-height:1.2">Drive + Sheets</div><div style="font-size:0.52rem;color:#6b6b9a;margin-top:2px">Node único</div></div>
-          <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:20px"></div>
-          <div style="text-align:center"><div style="font-size:1.1rem;margin-bottom:4px">🔍</div><div style="font-size:0.6rem;font-weight:700;color:#c4b5fd;line-height:1.2">Qive</div><div style="font-size:0.52rem;color:#6b6b9a;margin-top:2px">Fiscal NF</div></div>
-          <div style="flex:1;height:1.5px;background:#6613D0;margin-bottom:20px"></div>
-          <div style="text-align:center"><div style="font-size:1.1rem;margin-bottom:4px">🐍</div><div style="font-size:0.6rem;font-weight:700;color:#c4b5fd;line-height:1.2">Python R1–R15</div><div style="font-size:0.52rem;color:#6b6b9a;margin-top:2px">Sem IA no meio</div></div>
-          <div style="flex:1;height:1.5px;background:#1DA6AE;margin-bottom:20px"></div>
-          <div style="text-align:center"><div style="font-size:1.1rem;margin-bottom:4px">🗄️</div><div style="font-size:0.6rem;font-weight:700;color:#5eead4;line-height:1.2">Supabase</div><div style="font-size:0.52rem;color:#6b6b9a;margin-top:2px">Base de dados</div></div>
-          <div style="flex:1;height:1.5px;background:#8E44ED;margin-bottom:20px"></div>
-          <div style="text-align:center"><div style="font-size:1.1rem;margin-bottom:4px">🤖</div><div style="font-size:0.6rem;font-weight:700;color:#a78bfa;line-height:1.2">AI Agent</div><div style="font-size:0.52rem;color:#6b6b9a;margin-top:2px">Só no final</div></div>
-          <div style="flex:1;height:1.5px;background:#1FAC66;margin-bottom:20px"></div>
-          <div style="text-align:center"><div style="font-size:1.1rem;margin-bottom:4px">📊</div><div style="font-size:0.6rem;font-weight:700;color:#4ade80;line-height:1.2">Sheets 8 abas</div><div style="font-size:0.52rem;color:#6b6b9a;margin-top:2px">Entregável</div></div>
-          <div style="flex:1;height:1.5px;background:#1FAC66;margin-bottom:20px"></div>
-          <div style="text-align:center"><div style="font-size:1.1rem;margin-bottom:4px">✉️</div><div style="font-size:0.6rem;font-weight:700;color:#4ade80;line-height:1.2">Gmail</div><div style="font-size:0.52rem;color:#6b6b9a;margin-top:2px">Rascunho</div></div>
-        </div>
-        <div style="background:#060310;padding:10px 20px;display:flex;gap:8px;align-items:center">
-          <span style="background:rgba(102,19,208,0.3);border-radius:20px;padding:2px 10px;font-size:0.62rem;color:#a78bfa;font-weight:600">9 nodes</span>
-          <span style="background:rgba(102,19,208,0.3);border-radius:20px;padding:2px 10px;font-size:0.62rem;color:#a78bfa;font-weight:600">E-mail conciliação semanal</span>
-          <div style="margin-left:auto;display:flex;gap:16px">
+
+        <!-- PENDÊNCIAS DE CREDENCIAIS -->
+        <div style="background:#1a0a0a;border-top:1px solid #3a1a1a;padding:12px 20px;display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+          <div>
+            <div style="font-size:0.62rem;font-weight:700;color:#ef4444;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase">⚠ Pendências de Credenciais</div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-size:0.6rem;color:#fca5a5">• Omie BR (Ramon/TI)</div>
+              <div style="font-size:0.6rem;color:#fca5a5">• Qive API (Carol)</div>
+              <div style="font-size:0.6rem;color:#fca5a5">• OpenAI (chave empresa)</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.62rem;font-weight:700;color:#4ade80;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase">✅ Já Conectados</div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-size:0.6rem;color:#86efac">• Google (Drive + Sheets + Gmail)</div>
+              <div style="font-size:0.6rem;color:#86efac">• Supabase</div>
+            </div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:16px;align-items:center">
             <div style="display:flex;align-items:center;gap:4px;font-size:0.58rem;color:#4a4a6a"><span style="width:10px;height:1.5px;background:#6613D0;display:inline-block"></span>Coleta</div>
             <div style="display:flex;align-items:center;gap:4px;font-size:0.58rem;color:#4a4a6a"><span style="width:10px;height:1.5px;background:#1DA6AE;display:inline-block"></span>Armazenamento</div>
             <div style="display:flex;align-items:center;gap:4px;font-size:0.58rem;color:#4a4a6a"><span style="width:10px;height:1.5px;background:#8E44ED;display:inline-block"></span>IA</div>
@@ -931,11 +1027,12 @@
         <div class="step-number">2</div>
         <div class="step-content">
           <h4>HTTP Request — API Omie (somente leitura)</h4>
-          <p>Busca dois relatórios do Omie: (a) "Contas a Pagar e a Receber por mês/ano" filtrando o mês atual + próximo mês — 30 colunas + 3 calculadas automaticamente (Tipo, Anexo, Responsável); (b) saldo de todas as 23 contas ativas (contas correntes, cartões, Caixinha, SWILE, Onfly, XP).</p>
+          <p>Busca dois relatórios do Omie: (a) base de pagamentos via "Finanças → por mês/ano" com 30 colunas personalizadas — o Python adiciona 3 colunas calculadas que não existem no Omie: <strong>Tipo</strong> (Cartão de Crédito se nome da conta contém "Cartão/Fatura", senão Pipefy), <strong>Anexo</strong> (OK / Sem Anexo / Não gera doc fiscal / Solicitado) e <strong>Responsável</strong> (Diretoria para contas 5901, 5903, Helmuth 0903, Itaú 6128 e 6956 — demais = Contas a Pagar); (b) saldo das 23 contas ativas.</p>
           <div class="step-tags">
-            <span class="tag">30 colunas + 3 calculadas</span>
+            <span class="tag">30 colunas Omie</span>
+            <span class="tag orange">+ 3 colunas calculadas pelo Python</span>
             <span class="tag">23 contas</span>
-            <span class="tag gray">Somente leitura</span>
+            <span class="tag gray">Somente leitura — nunca escreve no Omie</span>
           </div>
         </div>
       </div>
@@ -943,12 +1040,12 @@
       <div class="step-item">
         <div class="step-number">3</div>
         <div class="step-content">
-          <h4>Drive + Sheets SWILE — Coleta de arquivos (node único parametrizado)</h4>
-          <p>Acessa a pasta do mês no Drive (<code>Conciliação Bancária / 2026 / 08. Agosto</code>) e localiza os arquivos pelo padrão de nomenclatura — "Fatura" no nome → cartão; demais → conta corrente. Prioriza Excel; PDF fica como evidência. No mesmo node, lê a planilha SWILE do DP e extrai: saldo final, TEDs recebidas por CC e total por categoria. Kamilla faz o upload antes de rodar.</p>
+          <h4>Drive + Sheets SWILE + Sheets Base Loggers — Coleta de arquivos</h4>
+          <p>Três nodes em sequência: (1) <strong>Drive</strong> acessa a pasta do mês e localiza os extratos por padrão de nomenclatura — "Fatura" no nome → cartão; demais → conta corrente; prioriza Excel, PDF fica como evidência; (2) <strong>Sheets SWILE Financeiro</strong> lê a planilha do DP e extrai saldo final, TEDs por CC e total por categoria; (3) <strong>Sheets Base Loggers</strong> lê a base de reembolso de colaboradores para validar a regra R5. Kamilla faz o upload dos extratos antes de rodar.</p>
           <div class="step-tags">
-            <span class="tag teal">Node único parametrizado</span>
+            <span class="tag teal">3 nodes de coleta</span>
             <span class="tag gray">Upload manual por Kamilla</span>
-            <span class="tag">PDF + Excel + Sheets DP</span>
+            <span class="tag">PDF + Excel + 2 planilhas</span>
           </div>
         </div>
       </div>
@@ -1442,7 +1539,13 @@
           <span>🔑</span><div><strong>Credenciais:</strong> App Key + App Secret do Omie BR e Omie Internacional — pegar antes de construir o workflow.</div>
         </div>
         <div style="background:#FFF8E6;border:1px solid #F5D87A;border-radius:10px;padding:12px 16px;font-size:0.82rem;color:#7A5200;display:flex;gap:10px">
-          <span>📅</span><div><strong>Validação MVP:</strong> Reunião com Carol na <strong>sexta-feira ao final do dia</strong> — levar MVP do Fluxo A rodando.</div>
+          <span>📅</span><div><strong>Validação MVP:</strong> Reunião com Carol — levar Fluxo A rodando para aprovação antes da entrega.</div>
+        </div>
+        <div class="decision-item" style="background:#f0fdf4;border-left:3px solid var(--green)">
+          <span>✅</span><div><strong>30/08 — Ambiente configurado:</strong> Cowork ativo · Ambiente nuvem "Conciliação N8N" criado · Repositório <code>Automa-o-concilia-o</code> (GitHub) conectado · Opus 4.7 selecionado · Arquitetura A/D2/D3 finalizada e validada.</div>
+        </div>
+        <div class="decision-item" style="background:#f0fdf4;border-left:3px solid var(--green)">
+          <span>🟢</span><div><strong>30/08 — Fluxo A construído no N8N:</strong> 12 nodes montados · GitHub Actions → Omie BR (pagamentos + saldos) → Drive → Sheets SWILE → Sheets Base Loggers → Qive → Python R1–R15 → Supabase → AI Agent (OpenAI) → Sheets 8 abas → Gmail rascunho. <strong>Credenciais pendentes:</strong> Omie BR (Ramon/TI) · Qive API (Carol) · OpenAI (chave empresa). <strong>Já conectados:</strong> Google · Supabase.</div>
         </div>
       </div>
     </div>
@@ -1465,16 +1568,16 @@
           <div class="timeline-sub">Ana Lívia + Carol · Decisão tomada ✅</div>
         </div>
         <div class="timeline-item">
-          <div class="timeline-dot" style="background:var(--orange);box-shadow:0 0 0 2px var(--orange)">⚙</div>
-          <div class="timeline-date">25–28/08</div>
-          <div class="timeline-label">Desenvolvimento</div>
-          <div class="timeline-sub">Construção do workflow no N8N com Claude MCP</div>
+          <div class="timeline-dot done">✓</div>
+          <div class="timeline-date">30/08</div>
+          <div class="timeline-label">Fluxo A construído</div>
+          <div class="timeline-sub">12 nodes no N8N · credenciais pendentes: Omie, Qive, OpenAI</div>
         </div>
         <div class="timeline-item">
-          <div class="timeline-dot pending">✓?</div>
-          <div class="timeline-date">29/08</div>
-          <div class="timeline-label">Validação Carol</div>
-          <div class="timeline-sub">Reunião sexta ao final do dia — aprovação do MVP</div>
+          <div class="timeline-dot" style="background:var(--orange);box-shadow:0 0 0 2px var(--orange)">⚙</div>
+          <div class="timeline-date">31/08</div>
+          <div class="timeline-label">Credenciais + teste</div>
+          <div class="timeline-sub">Conectar Omie BR (Ramon) · Qive (Carol) · OpenAI · rodar o fluxo completo</div>
         </div>
         <div class="timeline-item">
           <div class="timeline-dot pending">🏢</div>
