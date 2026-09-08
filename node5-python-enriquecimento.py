@@ -858,17 +858,19 @@ def conciliar_qive_omie(notas_qive, pagamentos_omie, historico_repetidos):
 # 1. ENRIQUECIMENTO + DETECCAO
 # --------------------------------------------------------------
 
-# Extrai pagamentos: cada item de _items pode ter "contas_pagar": [...]
+# Extrai pagamentos: cada item de _items pode ter "contas_pagar"/"conta_pagar_cadastro"
 # (resposta Omie) OU ser um pagamento solto no top-level (mock flat).
-# Aceita os dois formatos.
+# Precisa de node Merge upstream juntando Omie + Qive.
 pagamentos_brutos = []
 for _item in _items:
     _dados = (_item["json"] if isinstance(_item, dict) and "json" in _item else _item)
+    if not isinstance(_dados, dict):
+        continue
     if isinstance(_dados.get("contas_pagar"), list):
-        # Formato Omie: {"contas_pagar": [pag1, pag2, ...]}
         pagamentos_brutos.extend(_dados["contas_pagar"])
+    elif isinstance(_dados.get("conta_pagar_cadastro"), list):
+        pagamentos_brutos.extend(_dados["conta_pagar_cadastro"])
     elif _dados.get("codigo_lancamento") or _dados.get("nCodTitulo") or _dados.get("cnpj_cpf"):
-        # Formato flat: cada item ja e um pagamento
         pagamentos_brutos.append(_dados)
 
 pagamentos_enriquecidos = []
