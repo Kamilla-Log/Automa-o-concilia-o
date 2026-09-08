@@ -349,20 +349,107 @@ R10_CATEGORIAS_ISENTAS = {
 }
 
 # --------------------------------------------------------------
-# IMPORTS - todos no topo pra evitar surpresa em runtime
+# NOTA: n8n Cloud sandbox NAO permite imports de stdlib
+# (nem re, nem datetime, nem collections). Toda logica que usaria
+# esses modulos foi reescrita em Python puro abaixo.
 # --------------------------------------------------------------
-import re as _re
-import datetime as _datetime
-from collections import Counter as _Counter
 
-# R11 - Regex pra detectar parcelamento na Observacao
-# Aceita: "parcela X/Y", "parc X/Y", "X/Y" (isolado ou com espaco)
-R11_REGEX_PARCELA = _re.compile(
-    r"(?:parcela|parc\.?)?\s*\d+\s*/\s*\d+", _re.IGNORECASE
-)
+
+def _tem_parcelamento(texto):
+    """
+    Substituto de regex R11: detecta padrao "X/Y" (parcela) em texto.
+    Aceita: "parcela X/Y", "parc X/Y", "X/Y" (isolado ou com espaco).
+    Retorna True se achou padrao de parcelamento.
+    """
+    if not texto:
+        return False
+    s = str(texto).lower()
+    # Procura por "/" e verifica se tem digito antes e depois
+    i = 0
+    while i < len(s):
+        idx = s.find("/", i)
+        if idx == -1:
+            return False
+        # Verifica digito antes da "/"
+        j = idx - 1
+        while j >= 0 and s[j] == " ":
+            j -= 1
+        if j >= 0 and s[j].isdigit():
+            # Verifica digito depois da "/"
+            k = idx + 1
+            while k < len(s) and s[k] == " ":
+                k += 1
+            if k < len(s) and s[k].isdigit():
+                return True
+        i = idx + 1
+    return False
+
+
+class _CounterLike:
+    """Substituto de collections.Counter (nao permitido no sandbox)."""
+
+    def __init__(self, iteravel=None):
+        self._data = {}
+        if iteravel is not None:
+            for x in iteravel:
+                self._data[x] = self._data.get(x, 0) + 1
+
+    def items(self):
+        return self._data.items()
+
+    def get(self, key, default=0):
+        return self._data.get(key, default)
+
+
+def _agora_ano_mes():
+    """
+    Substituto de datetime.datetime.now(): pega ano/mes do input
+    (trigger passa mes_referencia). Se nao vier, usa 2026-09 fixo.
+    """
+    for _item in _items:
+        _dados = _item.json if hasattr(_item, "json") else _item.get("json", {})
+        _corpo = _dados.get("body") or _dados
+        _mes_ref = _corpo.get("mes_referencia") if isinstance(_corpo, dict) else None
+        if _mes_ref and isinstance(_mes_ref, str) and len(_mes_ref) >= 7:
+            try:
+                return int(_mes_ref[:4]), int(_mes_ref[5:7])
+            except (ValueError, TypeError):
+                pass
+    return 2026, 9
+
+
+def _parse_data_pt(valor):
+    """
+    Substituto de datetime.strptime: parseia dd/mm/yyyy ou yyyy-mm-dd
+    em (ano, mes, dia). None se falhar.
+    """
+    if not valor:
+        return None
+    s = str(valor).strip()[:10]
+    # Tenta dd/mm/yyyy ou dd-mm-yyyy
+    for sep in ("/", "-"):
+        if sep in s:
+            partes = s.split(sep)
+            if len(partes) == 3:
+                try:
+                    a, b, c = int(partes[0]), int(partes[1]), int(partes[2])
+                    # dd/mm/yyyy
+                    if c > 31:
+                        return c, b, a
+                    # yyyy-mm-dd
+                    if a > 31:
+                        return a, b, c
+                except (ValueError, TypeError):
+                    return None
+    return None
 
 # R11 - Fornecedores com parcelamento historico conhecido (nao precisa regex)
 R11_FORNECEDORES_PARCELAMENTO = {"dell", "pars"}
+
+
+def R11_REGEX_PARCELA_search(texto):
+    """Wrapper com API parecida com re.Pattern.search()."""
+    return _tem_parcelamento(texto)
 
 # R13 - Categorias Facilities -> devem estar em Depto 62
 R13_CATEGORIAS_FACILITIES = {
@@ -1201,9 +1288,7 @@ for pag in pagamentos_enriquecidos:
 # Cartao: qualquer data OK (fatura pode ser de mes anterior)
 # Pipefy: emissao >= mes anterior OK; < mes anterior = ERRO; ano anterior = CRITICO
 # Excecao: DELL/PARS com "parcela X/Y" na observacao
-_hoje = _datetime.datetime.now()
-_ano_atual = _hoje.year
-_mes_atual = _hoje.month
+_ano_atual, _mes_atual = _agora_ano_mes()
 if _mes_atual == 1:
     _limite_mes_anterior_ano = _ano_atual - 1
     _limite_mes_anterior_mes = 12
@@ -1211,46 +1296,36 @@ else:
     _limite_mes_anterior_ano = _ano_atual
     _limite_mes_anterior_mes = _mes_atual - 1
 
-def _parse_data_emissao(valor):
-    """Tenta parsear formatos dd/mm/yyyy, yyyy-mm-dd, dd-mm-yyyy."""
-    if not valor:
-        return None
-    s = str(valor).strip()[:10]
-    for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y", "%d/%m/%y"):
-        try:
-            return _datetime.datetime.strptime(s, fmt)
-        except ValueError:
-            continue
-    return None
-
 for pag in pagamentos_enriquecidos:
     tipo = pag.get("tipo", "")
     if tipo == "Cartao de Credito":
         continue  # Cartao aceita qualquer data
 
-    data_emissao = _parse_data_emissao(pag.get("data_emissao"))
-    if not data_emissao:
+    _data_ymd = _parse_data_pt(pag.get("data_emissao"))
+    if not _data_ymd:
         continue
+    _ano_emissao, _mes_emissao, _dia_emissao = _data_ymd
+    _data_str = str(_dia_emissao).zfill(2) + "/" + str(_mes_emissao).zfill(2) + "/" + str(_ano_emissao)
 
     observacao = str(pag.get("observacao") or "").lower()
     fornecedor_norm = _norm_txt(pag.get("razao_social") or pag.get("nome_fantasia"))
-    tem_parcelamento = bool(R11_REGEX_PARCELA.search(observacao))
+    tem_parcelamento = _tem_parcelamento(observacao)
     fornecedor_parcelavel = any(f in fornecedor_norm for f in R11_FORNECEDORES_PARCELAMENTO)
 
     if tem_parcelamento or fornecedor_parcelavel:
         continue  # Excecao DELL/PARS ou parcela X/Y documentada
 
     # Ano anterior = CRITICO
-    if data_emissao.year < _ano_atual:
+    if _ano_emissao < _ano_atual:
         _add_apontamento(
             "R11", "critico", pag,
-            "Data de emissao de ANO ANTERIOR (" + data_emissao.strftime("%d/%m/%Y") + "). Verificar urgencia.",
+            "Data de emissao de ANO ANTERIOR (" + _data_str + "). Verificar urgencia.",
             "Confirmar se e parcela antiga documentada",
         )
-    elif (data_emissao.year, data_emissao.month) < (_limite_mes_anterior_ano, _limite_mes_anterior_mes):
+    elif (_ano_emissao, _mes_emissao) < (_limite_mes_anterior_ano, _limite_mes_anterior_mes):
         _add_apontamento(
             "R11", "alto", pag,
-            "Data de emissao com mais de 1 mes de atraso (" + data_emissao.strftime("%d/%m/%Y") + ").",
+            "Data de emissao com mais de 1 mes de atraso (" + _data_str + ").",
             "Verificar motivo do atraso ou registrar parcelamento",
         )
 
@@ -1306,7 +1381,7 @@ for chave, lancamentos in _grupos_nf_cnpj.items():
         continue  # Cada linha em um depto = rateio OK
 
     # Duplicata: mesmo depto em 2+ linhas
-    contagem_deptos = _Counter(_norm_txt(l.get("departamento")) for l in lancamentos)
+    contagem_deptos = _CounterLike(_norm_txt(l.get("departamento")) for l in lancamentos)
     for depto_norm, qtd in contagem_deptos.items():
         if qtd < 2:
             continue
