@@ -385,20 +385,12 @@ def _tem_parcelamento(texto):
     return False
 
 
-class _CounterLike:
-    """Substituto de collections.Counter (nao permitido no sandbox)."""
-
-    def __init__(self, iteravel=None):
-        self._data = {}
-        if iteravel is not None:
-            for x in iteravel:
-                self._data[x] = self._data.get(x, 0) + 1
-
-    def items(self):
-        return self._data.items()
-
-    def get(self, key, default=0):
-        return self._data.get(key, default)
+def _contar(iteravel):
+    """Substituto de collections.Counter - sandbox nao aceita 'class'."""
+    d = {}
+    for x in iteravel:
+        d[x] = d.get(x, 0) + 1
+    return d
 
 
 def _agora_ano_mes():
@@ -407,7 +399,7 @@ def _agora_ano_mes():
     (trigger passa mes_referencia). Se nao vier, usa 2026-09 fixo.
     """
     for _item in _items:
-        _dados = _item.json if hasattr(_item, "json") else _item.get("json", {})
+        _dados = (_item["json"] if isinstance(_item, dict) and "json" in _item else _item)
         _corpo = _dados.get("body") or _dados
         _mes_ref = _corpo.get("mes_referencia") if isinstance(_corpo, dict) else None
         if _mes_ref and isinstance(_mes_ref, str) and len(_mes_ref) >= 7:
@@ -646,7 +638,7 @@ def _extrair_pagamentos_omie_do_input():
     """
     pagamentos = []
     for item in _items:
-        dados = item.json if hasattr(item, "json") else item.get("json", {})
+        dados = (item["json"] if isinstance(item, dict) and "json" in item else item)
         contas_pagar = dados.get("contas_pagar")
         if contas_pagar:
             if isinstance(contas_pagar, list):
@@ -658,7 +650,7 @@ def _extrair_notas_qive_do_input():
     """Tenta encontrar as notas fiscais da Qive no input."""
     notas = []
     for item in _items:
-        dados = item.json if hasattr(item, "json") else item.get("json", {})
+        dados = (item["json"] if isinstance(item, dict) and "json" in item else item)
         for chave in ("notas", "notas_fiscais", "nfe", "nfse"):
             valor = dados.get(chave)
             if isinstance(valor, list):
@@ -871,7 +863,7 @@ def conciliar_qive_omie(notas_qive, pagamentos_omie, historico_repetidos):
 # Aceita os dois formatos.
 pagamentos_brutos = []
 for _item in _items:
-    _dados = _item.json if hasattr(_item, "json") else _item.get("json", {})
+    _dados = (_item["json"] if isinstance(_item, dict) and "json" in _item else _item)
     if isinstance(_dados.get("contas_pagar"), list):
         # Formato Omie: {"contas_pagar": [pag1, pag2, ...]}
         pagamentos_brutos.extend(_dados["contas_pagar"])
@@ -989,7 +981,7 @@ for dados in pagamentos_brutos:
 notas_qive = _extrair_notas_qive_do_input()
 historico_supabase = []
 for _item in _items:
-    _dados = _item.json if hasattr(_item, "json") else _item.get("json", {})
+    _dados = (_item["json"] if isinstance(_item, dict) and "json" in _item else _item)
     _hist = _dados.get("historico_so_qive") or _dados.get("supabase_snapshots")
     if isinstance(_hist, list):
         historico_supabase.extend(_hist)
@@ -1381,7 +1373,7 @@ for chave, lancamentos in _grupos_nf_cnpj.items():
         continue  # Cada linha em um depto = rateio OK
 
     # Duplicata: mesmo depto em 2+ linhas
-    contagem_deptos = _CounterLike(_norm_txt(l.get("departamento")) for l in lancamentos)
+    contagem_deptos = _contar(_norm_txt(l.get("departamento")) for l in lancamentos)
     for depto_norm, qtd in contagem_deptos.items():
         if qtd < 2:
             continue
@@ -1446,7 +1438,7 @@ def _extrair_base_loggers_do_input():
     """
     idx = {}
     for item in _items:
-        dados = item.json if hasattr(item, "json") else item.get("json", {})
+        dados = (item["json"] if isinstance(item, dict) and "json" in item else item)
         # Aceita tanto "CPF" quanto "cpf" quanto variacoes
         cpf_raw = dados.get("CPF") or dados.get("cpf") or dados.get("Cpf")
         if not cpf_raw:
