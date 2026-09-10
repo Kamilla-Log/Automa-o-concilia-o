@@ -15,6 +15,14 @@ on:
         description: 'Mês de referência (AAAA-MM). Deixe em branco para usar o mês atual.'
         required: false
         default: ''
+      periodo_inicio:
+        description: 'Data inicial da conciliação (DD/MM/AAAA). Ex: 01/09/2026. Deixe em branco para não informar período.'
+        required: false
+        default: ''
+      periodo_fim:
+        description: 'Data final da conciliação (DD/MM/AAAA). Ex: 06/09/2026. Deixe em branco para não informar período.'
+        required: false
+        default: ''
       observacao:
         description: 'Observação opcional (aparece no log e no e-mail final)'
         required: false
@@ -53,6 +61,8 @@ jobs:
           MES_REFERENCIA: ${{ steps.prep.outputs.mes }}
           WEBHOOK_URL: ${{ steps.prep.outputs.url }}
           AMBIENTE: ${{ github.event.inputs.ambiente }}
+          PERIODO_INICIO: ${{ github.event.inputs.periodo_inicio }}
+          PERIODO_FIM: ${{ github.event.inputs.periodo_fim }}
           OBSERVACAO: ${{ github.event.inputs.observacao }}
           DISPARADO_POR: ${{ github.actor }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -68,6 +78,8 @@ jobs:
           PAYLOAD=$(cat <<EOF
           {
             "mes_referencia": "${MES_REFERENCIA}",
+            "periodo_inicio": "${PERIODO_INICIO}",
+            "periodo_fim": "${PERIODO_FIM}",
             "triggered_by": "github-actions",
             "ambiente": "${AMBIENTE}",
             "disparado_por": "${DISPARADO_POR}",
