@@ -73,22 +73,21 @@ O arquivo `node5-python-enriquecimento.py` na raiz do repo é a **referência ca
 
 ## Onde eu parei exatamente (para retomar)
 
-Estava testando se `Loop Categorias` (o loop de páginas de categoria, construído do mesmo jeito que o de fornecedores) está funcionando — a execução de teste (`executionId: 16693`) rodou com sucesso, mas eu **não tive tempo de confirmar** se esse segundo loop também tinha o bug da porta invertida (done=0/loop=1) corrigido, porque a Kamilla mudou de prioridade pra fazer a migração de sessão e o formulário do desafio. **Isso é o primeiro passo a verificar** na próxima sessão: puxar a execução 16693 (ou rodar uma nova) e confirmar quantas páginas de categoria vieram (esperado: 20 páginas, ~987 categorias).
+`Loop Categorias` já foi **confirmado funcionando** (execução `16693`: 19 páginas restantes + página 1 = 20 páginas completas, ~987 categorias, com a porta correta done=0/loop=1 desde a primeira tentativa). `Loop Fornecedores` também já está confirmado funcionando (39 fornecedores únicos consultados com sucesso via `ConsultarCliente`). **Nenhum dos dois loops está ligado ao Merge ainda** — esse é o próximo passo real (passo 1 abaixo), não a validação do loop em si (isso já foi feito).
 
 ## Próximos passos técnicos (em ordem)
 
-1. Confirmar se `Loop Categorias` está trazendo todas as ~20 páginas (987 categorias). Se a porta estiver invertida, aplicar a mesma correção que foi feita em `Loop Fornecedores` (trocar sourceIndex 0↔1 na conexão pro node `Omie BR - Categorias Pagina N`).
-2. Ligar `Loop Fornecedores` (saída "done", índice 0) e `Loop Categorias` (saída "done", índice 0) como novos inputs do `Merge - Omie + Qive` (bump `numberInputs` pra 8).
-3. Atualizar o node `Python - Validacoes R1 a R15` pra v20:
+1. Ligar `Loop Fornecedores` (saída "done", índice 0) e `Loop Categorias` (saída "done", índice 0) como novos inputs do `Merge - Omie + Qive` (bump `numberInputs` pra 8).
+2. Atualizar o node `Python - Validacoes R1 a R15` pra v20:
    - Construir `fornecedor_map` a partir dos itens de `ConsultarCliente` (chave `codigo_cliente_omie` → `{cnpj_cpf, razao_social, nome_fantasia}`).
    - Construir `categoria_map` a partir de todos os itens `categoria_cadastro` (chave `codigo` → `descricao`).
    - Trocar extração de `numero_documento_fiscal` (no lugar de `nf_cf`/`numero_documento`), `cnab_integracao_bancaria.multa_boleto`/`.juros_boleto` (no lugar de `multa`/`juros`), presença de `codigo_projeto` (no lugar de `projeto` texto).
    - Aplicar `fornecedor_map`/`categoria_map` durante o enriquecimento de cada pagamento (preencher `cnpj_cpf`, `razao_social`, `categoria` de verdade).
-4. Portar a lógica completa de `node5-python-enriquecimento.py` (R3, R5, R6, R7, R10, R11, R13, Extra-A) pro node real, adaptada aos nomes de campo corretos da tabela acima. **Atenção**: R6 (eventos→depto marketing) e a detecção de reembolso por texto livre em R5 dependiam de um campo `observacao` que **não existe** na API real — precisa decidir com a Kamilla um substituto ou aceitar que essas ficam limitadas.
-5. Testar execução completa e confirmar que a conciliação Qive×Omie agora bate de verdade (usar o `fornecedor_map` pra popular `cnpj_cpf` antes de chamar a função `conciliar()`).
-6. Mover as credenciais hardcoded do node `Supabase - Snapshot Semanal` pra uma credential de verdade.
-7. Perguntar ao Ramon se existe endpoint interno de saldo bancário em tempo real (Kamilla escolheu esse caminho, ainda não perguntado).
-8. Aguardar sign-off da Carol antes de ativar o trigger de produção do GitHub Actions.
+3. Portar a lógica completa de `node5-python-enriquecimento.py` (R3, R5, R6, R7, R10, R11, R13, Extra-A) pro node real, adaptada aos nomes de campo corretos da tabela acima. **Atenção**: R6 (eventos→depto marketing) e a detecção de reembolso por texto livre em R5 dependiam de um campo `observacao` que **não existe** na API real — precisa decidir com a Kamilla um substituto ou aceitar que essas ficam limitadas.
+4. Testar execução completa e confirmar que a conciliação Qive×Omie agora bate de verdade (usar o `fornecedor_map` pra popular `cnpj_cpf` antes de chamar a função `conciliar()`).
+5. Mover as credenciais hardcoded do node `Supabase - Snapshot Semanal` pra uma credential de verdade.
+6. Perguntar ao Ramon se existe endpoint interno de saldo bancário em tempo real (Kamilla escolheu esse caminho, ainda não perguntado).
+7. Aguardar sign-off da Carol antes de ativar o trigger de produção do GitHub Actions.
 
 ## Coisas que a Kamilla já decidiu (não perguntar de novo)
 
